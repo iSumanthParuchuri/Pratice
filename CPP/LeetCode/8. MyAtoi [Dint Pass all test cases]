@@ -1,0 +1,42 @@
+class Solution {
+public:
+    int myAtoi(string s) {
+        int sh=1,sc=0;
+        int ch=0,con=0;
+        for(int i=0;i<s.length();i++){
+            if(s[i]==' '){
+                if(con>0){break;}
+                continue;}
+            if(s[i]=='-'){
+                if(con>0){
+                    break;
+                }
+                sh=-1;
+                sc++;
+            }
+            if(s[i]=='+'){
+                if(con>0){
+                    break;
+                }
+                sh=1; 
+                sc++;
+            }
+            if(sc>1){return 0;}
+            if(isdigit(s[i])){
+                con++;
+                if(con>9 && ch+10>INT_MAX/10){
+                    if(sh==-1){return INT_MIN;}
+                    else{return INT_MAX;}
+                }
+                else
+                {
+                    ch=ch*10+(s[i]-'0');
+                }
+            }
+            if(isalpha(s[i])||s[i]=='.'){
+                break;
+            }
+        }
+        return sh * int(ch);
+    }
+};
