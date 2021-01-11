@@ -1,0 +1,4 @@
+# Write your MySQL query statement below
+Select Department, Employee, Salary from
+(select D.Name as 'Department', E.Name as 'Employee', E.Salary, DENSE_RANK() over (Partition by D.ID Order by E.salary DESC)r from Employee E inner join Department D on E.DepartmentId = D.ID)A
+where r = 1
