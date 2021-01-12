@@ -1,0 +1,6 @@
+# Write your MySQL query statement below
+select Department, Employee, Salary from
+(
+select D.Name as 'Department', E.Name as 'Employee',E.Salary, DENSE_RANK() over(partition by DepartmentId order by Salary DESC)r from Employee E inner join Department D on E.DepartmentId = D.Id
+)A
+where r<=3;
