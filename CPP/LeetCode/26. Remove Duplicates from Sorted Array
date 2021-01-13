@@ -1,0 +1,23 @@
+class Solution {
+public:
+    int removeDuplicates(vector<int>& nums) {
+        vector<int> res;
+        int n = nums.size();
+        if(n>0){
+            res.push_back(nums.back());
+            nums.pop_back();
+        }
+        while(!nums.empty()){
+            if(res.back()==nums.back()){
+                nums.pop_back();
+            }
+            else{
+                res.push_back(nums.back());
+                nums.pop_back();
+            }
+        }
+        reverse(res.begin(),res.end());
+        nums = res;
+        return res.size();
+    }
+};
