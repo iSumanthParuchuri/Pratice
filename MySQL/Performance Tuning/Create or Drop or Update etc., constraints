@@ -1,0 +1,244 @@
+CREATE PROCEDURE [dbo].[UnityIndexConstraintsExecution]  
+ @TableName       VARCHAR(255)  
+,@ActionType      VARCHAR(50)  
+,@DatabaseName VARCHAR(100) = 'dbProjectUnity'  
+AS  
+BEGIN  
+ SET NOCOUNT ON;  
+ SET ANSI_NULLS ON  
+ SET XACT_ABORT ON  
+  
+ -- DECLARE VARIABLES  
+ DECLARE  @ErrorMessage VARCHAR(2000) = ''  
+   ,@Procedure SYSNAME = OBJECT_NAME(@@PROCID)  
+   ,@SchemaName VARCHAR(20) = 'dbo'  
+ DECLARE @TempResult table ([rowcount] VARCHAR(250))  
+  
+/****** Parameter Validation Starts ****************************************************************************************************/  
+ --@Database  
+ SET @DatabaseName = NULLIF(REPLACE(REPLACE(LTRIM(RTRIM(@DatabaseName)),'[',''),']',''),'')  
+ DELETE FROM @TempResult  
+ insert into @TempResult ([rowcount])  
+ EXECUTE('USE ' +@DatabaseName + ' SELECT TOP 1 1 FROM sys.databases WHERE name ='''+ @DatabaseName+'''')  
+ IF NOT EXISTS (select TOP 1 1 from @TempResult)  
+ BEGIN  
+  SET @ErrorMessage = 'Invalid Parameter for @DatabaseName. Please enter a valid database name that is available in the server '  
+  GOTO QuitProcedure  
+ END  
+  
+ --@TableName  
+ SET @TableName = REPLACE(REPLACE(LTRIM(RTRIM(ISNULL(@TableName,''))),'[',''),']','')  
+ IF (@TableName = '')  
+ BEGIN  
+  SET @ErrorMessage = 'Invalid Parameter for @TableName. Please enter a valid table name that is available in the database '  
+  GOTO QuitProcedure  
+ END  
+ SET @TableName = REPLACE(REPLACE(LTRIM(RTRIM(ISNULL(@TableName, ''))), '[', ''), ']', '')  
+ DELETE FROM @TempResult  
+ insert into @TempResult ([rowcount])  
+ EXECUTE('USE ' +@DatabaseName + ' SELECT TOP 1 schema_name(schema_id) FROM sys.tables (NOLOCK) WHERE NAME = '''+ @TableName+'''')  
+  
+ SET @SchemaName = IIF(CHARINDEX('.', @TableName) > 1, LEFT(@TableName, CHARINDEX('.', @TableName) - 1), (SELECT TOP 1 [rowcount] FROM @TempResult))  
+ SET @TableName = RIGHT(@TableName, LEN(@TableName) - CHARINDEX('.', @TableName))  
+  
+ DELETE FROM @TempResult  
+ insert into @TempResult ([rowcount])  
+ EXECUTE('USE ' +@DatabaseName + ' SELECT TOP 1 schema_name(schema_id) FROM sys.schemas (NOLOCK) WHERE NAME = '''+ @SchemaName+'''')  
+  
+ IF NOT EXISTS (SELECT TOP 1 1 FROM @TempResult)  
+ BEGIN  
+  SET @ErrorMessage = 'Invalid SchemaName provided within @TableName parameter. Please enter a valid schema name that is available in the database '  
+  GOTO QuitProcedure  
+ END  
+  
+ DELETE FROM @TempResult  
+ insert into @TempResult ([rowcount])  
+ EXECUTE('USE ' +@DatabaseName + ' SELECT TOP 1 1 FROM sys.tables WHERE SCHEMA_NAME(schema_id) = '''+ @SchemaName+''' AND name ='''+ @TableName+'''')  
+  
+ IF NOT EXISTS (SELECT TOP 1 1 FROM @TempResult)  
+ BEGIN  
+  SET @ErrorMessage = 'Invalid Parameter for '+ @TableName +' under ['+@SchemaName+'] schema in database '+@DatabaseName +'. Please enter a valid table name that is available in the database '  
+  GOTO QuitProcedure  
+ END  
+ IF (@ActionType = 'CREATE') AND NOT EXISTS (SELECT TOP 1 1 FROM MD.UnityIndexConstraints(NOLOCK) WHERE TableName = @TableName AND [Schema] = @SchemaName  
+ AND DatabaseName = @DatabaseName)  
+ BEGIN  
+  SET @ErrorMessage = 'Invalid Parameter for '+ @TableName +' under ['+@SchemaName+'] schema in the database '+ @DatabaseName +'. Table name does not exists in MD.UnityIndexConstraints table '  
+  GOTO QuitProcedure  
+ END  
+/****** Parameter Validation Ends ****************************************************************************************************/  
+   
+/****** Index or Constraint EXECUTION Starts ************************************************************************/  
+  
+IF (@ActionType = 'CREATE')  
+BEGIN  
+ DECLARE @TempConstIndex TABLE (  
+  RecID INT,  
+  ConstraintIndexName VARCHAR(1000),  
+  [Statement] NVARCHAR(MAX)  
+ )  
+ DELETE @TempConstIndex  
+ INSERT INTO @TempConstIndex  
+ SELECT Row_Number() OVER (  
+        ORDER BY CASE StatementType  
+          WHEN 'PrimaryKey'  
+           THEN 1  
+          WHEN 'UniqueKey'  
+           THEN 2  
+          WHEN 'ForeignKey'  
+           THEN 3  
+          WHEN 'RowStoreIndex'  
+           THEN IIF(ISNULL(IsClustered, - 1) = 1, 4, 5)  
+          WHEN 'ColumnStoreIndex'  
+           THEN 6  
+          WHEN 'Custom'  
+           THEN 7  
+          ELSE 8  
+          END DESC  
+        ) AS RecID  
+       ,ConstraintIndexName  
+       ,[Statement]  
+ FROM MD.UnityIndexConstraints (NOLOCK)  
+ WHERE [Schema] = @SchemaName AND TableName = @TableName  
+ AND StatementType != 'ForeignKey' AND DatabaseName = @DatabaseName   
+  
+ DECLARE   @RecID INT = (SELECT MAX(RecID) FROM @TempConstIndex)  
+   , @ConstraintIndexName VARCHAR(1000)  
+   , @Statement NVARCHAR(MAX)  
+  
+ WHILE(@RecID > 0)  
+ BEGIN  
+  SELECT  @ConstraintIndexName = ConstraintIndexName  
+    ,@Statement = [Statement]  
+  FROM @TempConstIndex  
+  WHERE RecID = @RecID  
+  BEGIN TRY  
+   EXEC SP_EXECUTESQL @Statement   
+  END TRY  
+  BEGIN CATCH  
+   SET @ErrorMessage = 'Error executing Index / Constraint, ConstraintIndexName: "' + @ConstraintIndexName   
+         + '". TableName: "' +@DatabaseName+ '.' + @SchemaName + '.' + @TableName + '". Error:' + ISNULL(Error_Message(),'')  
+   GOTO QuitProcedure  
+  END CATCH  
+  SET @RecID = @RecID - 1  
+ END  
+END  
+ELSE IF (@ActionType = 'DROP')  
+BEGIN  
+  
+ DECLARE @TempSubConstIndexDrop TABLE (  
+  OType INT,  
+  CSchema_Name VARCHAR(20),  
+  CONSTRAINT_NAME VARCHAR(1000),  
+  [Schema_Name] VARCHAR(20),  
+  Table_Name VARCHAR(255)  
+ )  
+  
+ INSERT INTO @TempSubConstIndexDrop  
+ EXECUTE('USE ' + @DatabaseName + ' SELECT 1 AS OType,  
+       SCHEMA_NAME(f.schema_id) AS CSchemaName,  
+       f.name AS CONSTRAINT_NAME,  
+       SCHEMA_NAME(Tab.schema_id) AS TSchemaName,  
+       Tab.name AS TABLE_NAME  
+   FROM   sys.foreign_keys AS f  
+       INNER JOIN  
+       sys.foreign_key_columns AS fc  
+       ON f.OBJECT_ID = fc.constraint_object_id  
+       INNER JOIN  
+       sys.[tables] AS Tab  
+      ON Tab.[object_id] = f.parent_object_id  
+       INNER JOIN   
+       sys.tables as RefTab  
+      ON RefTab.object_id = f.referenced_object_id  
+   WHERE  RefTab.name = '''+ @TableName+''' AND SCHEMA_NAME(RefTab.schema_id) = '''+ @SchemaName+'''  
+   UNION  
+   SELECT 2 AS OType,  
+       CONSTRAINT_SCHEMA,  
+       CONSTRAINT_NAME,  
+       TABLE_SCHEMA,  
+       TABLE_NAME  
+   FROM   INFORMATION_SCHEMA.TABLE_CONSTRAINTS  
+   WHERE  TABLE_NAME = '''+ @TableName+''' AND TABLE_SCHEMA = '''+ @SchemaName+'''  
+   UNION  
+   SELECT 3 AS OType,  
+       '''' AS CSchemaName,   
+       Ind.name AS CONSTRAINT_NAME,  
+       SCHEMA_NAME(Tab.schema_id) AS TSchemaName,  
+       Tab.name AS TABLE_NAME  
+   FROM   sys.[indexes] AS Ind  
+       INNER JOIN  
+       sys.[tables] AS Tab  
+       ON Tab.[object_id] = Ind.[object_id]  
+   WHERE  Tab.name = '''+ @TableName+''' AND SCHEMA_NAME(Tab.schema_id) = '''+ @SchemaName+'''')  
+  
+ DECLARE @TempConstIndexDrop TABLE (  
+  RecID INT,  
+  OType INT,  
+  CSchema_Name VARCHAR(20),  
+  ConstraintIndexName VARCHAR(1000),  
+  [Schema_Name] VARCHAR(20),  
+  Table_Name VARCHAR(255)  
+ )  
+ DELETE @TempConstIndexDrop  
+ INSERT INTO @TempConstIndexDrop  
+ SELECT ROW_NUMBER() OVER (ORDER BY OType DESC) AS RecID,*   
+ FROM (  
+   SELECT * FROM @TempSubConstIndexDrop   
+  )InQ WHERE InQ.CONSTRAINT_NAME IS NOT NULL  
+   
+ DECLARE   @RecIDDrop INT = (SELECT MAX(RecID) FROM @TempConstIndexDrop)  
+   , @CSchema_Name VARCHAR(20)  
+   , @ConstraintIndex_Name VARCHAR(1000)  
+   , @Schema_Name VARCHAR(20)  
+   , @Table_Name VARCHAR(255)  
+   , @Statement_Drop NVARCHAR(MAX)  
+  
+ WHILE(@RecIDDrop > 0)  
+ BEGIN  
+  SELECT   @CSchema_Name = CSchema_Name  
+    ,@ConstraintIndex_Name = ConstraintIndexName  
+    ,@Schema_Name = [Schema_Name]  
+    ,@Table_Name = Table_Name  
+    ,@Statement_Drop = CASE OType  
+         WHEN 1 THEN 'USE '+@DatabaseName +' IF EXISTS (SELECT *  
+                 FROM   sys.foreign_keys  
+                 WHERE  object_id = OBJECT_ID(N''['+ @CSchema_Name +'].[' + @ConstraintIndex_Name + ']'')  
+                  AND parent_object_id = OBJECT_ID(N''[' +@Schema_Name+ '].['+@Table_Name+']''))  
+             ALTER TABLE [' +@Schema_Name+ '].['+@Table_Name+']   
+             DROP CONSTRAINT [' + @ConstraintIndex_Name + ']'  
+         WHEN 2 THEN 'USE '+@DatabaseName +' IF EXISTS (SELECT *  
+               FROM   INFORMATION_SCHEMA.TABLE_CONSTRAINTS  
+               WHERE CONSTRAINT_SCHEMA = '''+ @CSchema_Name +''' AND CONSTRAINT_NAME = '''+ @ConstraintIndex_Name +'''  
+               AND TABLE_SCHEMA = ''' +@Schema_Name+ ''' AND TABLE_NAME = '''+@Table_Name+''' )  
+             ALTER TABLE [' +@Schema_Name+ '].['+@Table_Name+']   
+             DROP CONSTRAINT [' + @ConstraintIndex_Name + ']'  
+         WHEN 3 THEN 'USE '+@DatabaseName +' IF EXISTS (SELECT *  
+                 FROM   sys.indexes  
+                 WHERE  object_id = OBJECT_ID(N''[' +@Schema_Name+ '].['+@Table_Name+']'')  
+                  AND name = N''' + @ConstraintIndex_Name + ''')  
+             DROP INDEX [' + @ConstraintIndex_Name + ']  
+              ON [' +@Schema_Name+ '].['+@Table_Name+']  
+              WITH (ONLINE = OFF)' END   
+  FROM @TempConstIndexDrop  
+  WHERE RecID = @RecIDDrop  
+  BEGIN TRY  
+   EXEC SP_EXECUTESQL @Statement_Drop   
+  END TRY  
+  BEGIN CATCH  
+   SET @ErrorMessage = 'Error Dropping Index / Constraint, ConstraintIndexName: "' + @ConstraintIndex_Name   
+         + '". TableName: "' +@DatabaseName+'.'+ @Schema_Name + '.' + @Table_Name + '". Error:' + ISNULL(Error_Message(),'') + ISNULL(@Statement_Drop, '')  
+   GOTO QuitProcedure  
+  END CATCH  
+  SET @RecIDDrop = @RecIDDrop - 1  
+ END  
+  
+END  
+/****** Index or Constraint EXECUTION Ends ************************************************************************/  
+  
+ GOTO EndSave  
+ QuitProcedure:  
+ SET @ErrorMessage = @ErrorMessage + CHAR(10) + ' DBName        = ' + @DatabaseName + CHAR(10) + ' Procedure     = ' + ISNULL(@Procedure,'') + CHAR(10)   
+ RAISERROR (@ErrorMessage,18,1)  
+ EndSave:  
+END    
+  
