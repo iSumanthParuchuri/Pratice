@@ -1,0 +1,16 @@
+class Solution {
+public:
+    int reverse(int x) {
+        int r=0,f=1;
+        if(x<=-2147483648){return 0;}
+        if(x<0){f=-1;x=x*-1;}
+        while(x>0){
+            if (r > (INT_MAX-abs(x%10))/10){
+                return  0;
+            }
+            r=r*10+x%10;
+            x=x/10;
+        }
+        return r*f;
+    }
+};
