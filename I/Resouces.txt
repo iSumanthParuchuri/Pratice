@@ -1,0 +1,5 @@
+Resources : I prefer less resources for focused and coherent studies, and also because I study for less time but with high-intensity work. I used only these resources.
+a) Coding : Leetcode
+b) Theory : Read topic-wise for data structures and algorithms to lay foundations.
+c) Behavioral/Tech : https://docs.google.com/document/d/11lLvIXcJw4Oi4mkqhWNO6uQe0Xwm-_Ej-OO73Qv_tWM/edit?usp=sharing (GlassDoor Questions)
+d) System Design : https://github.com/donnemartin/system-design-primer + https://engineering.videoblocks.com/web-architecture-101-a3224e126947
