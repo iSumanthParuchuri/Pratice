@@ -1,0 +1,22 @@
+class Solution {
+public:
+    int numberOfBoomerangs(vector<vector<int>>& points) {
+        int n=points.size();
+        int ans=0,i,j;
+        unordered_map<int , int> umap;//to store number of pairs we are gettin for each difference value
+        for(i=0;i<n;i++){
+            for(j=0;j<n;j++){
+                if(i==j)
+                    continue; // diff between same points are not taken into consideration
+                auto x=points[i][0]-points[j][0];
+                auto y=points[i][1]-points[j][1];
+                umap[x*x+y*y]++;//we don't need to calculate sqrt for simplicity
+            }
+            for(auto x:umap){
+                ans+=x.second*(x.second-1);//to get all the possible permutations 
+            }
+            umap.clear();//clear the map before startin next iteration of the outer for loop
+        }
+        return ans;
+    }
+};
