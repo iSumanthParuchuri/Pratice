@@ -1,0 +1,24 @@
+class Solution(object):
+    def numberOfBoomerangs(self, points):
+        """
+        :type points: List[List[int]]
+        :rtype: int
+        """
+        if len(points)<=2:
+            return 0
+        res=0
+        for a,b in points:
+            d={}
+            for x,y in points:
+                p = (a-x)*(a-x)+(b-y)*(b-y)
+                if p in d: 
+                    d[p]+=1
+                else:
+                    d[p]=1
+            for k in d:
+                if k!=0:
+                    res+=d[k]*(d[k]-1)
+        return res
+                
+            
+        
