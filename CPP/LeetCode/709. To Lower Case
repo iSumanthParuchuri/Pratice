@@ -1,0 +1,16 @@
+class Solution {
+public:
+    char toL(char& c){
+        if(c>='A' && c<='Z'){
+            c=c+32;
+        }
+        return c;
+    }
+    string toLowerCase(string str) {
+        int n=str.length();
+        for(char&c : str){
+            c=toL(c);
+        }
+        return str;
+    }
+};
