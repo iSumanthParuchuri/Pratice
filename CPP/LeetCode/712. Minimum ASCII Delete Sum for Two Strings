@@ -1,0 +1,39 @@
+class Solution {
+public:
+    int minimumDeleteSum(string s1, string s2) {
+        int m=s1.length(),n=s2.length(),res=0;
+        int dp[m][n];
+        string s="";
+        for(int i=0;i<m;i++){
+            memset(dp[i],0,sizeof(dp[i]));
+        }
+        for(int i=0;i<m;i++){
+            for(int j=0;j<n;j++){
+                if(s1[i]==s2[j]&&(i==0 || j==0)){
+                    dp[i][j]=int(s1[i]);
+                }
+                else if(s1[i]==s2[j] && i>0 && j>0){
+                    dp[i][j]=dp[i-1][j-1]+int(s1[i]);
+                    s+=s1[i];
+                }
+                else if(i>0 && j>0){
+                    dp[i][j]=max(dp[i][j-1],dp[i-1][j]);
+                }
+                else if(i>0){
+                    dp[i][j]=dp[i-1][j];
+                }
+                else if(j>0){
+                    dp[i][j]=dp[i][j-1];
+                }
+            }
+        }
+        for(auto c:s1){
+            res+=int(c);
+        }
+        for(auto c:s2){
+            res+=int(c);
+        }
+        res-=2*dp[m-1][n-1];
+        return res;
+    }
+};
