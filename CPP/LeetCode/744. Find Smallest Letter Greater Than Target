@@ -1,0 +1,17 @@
+class Solution {
+public:
+    char nextGreatestLetter(vector<char>& letters, char target) {
+        int n = letters.size();
+        int mi = INT_MAX;
+        char res;
+        for(int i=0;i<n;i++){
+            int m=letters[i]-target;
+            if(m<=0){m+=26;}
+            if(m<mi){
+                mi=m;
+                res=letters[i];
+            }      
+        }
+    return res;
+    }
+};
