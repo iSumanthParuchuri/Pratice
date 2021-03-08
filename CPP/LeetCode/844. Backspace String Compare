@@ -1,0 +1,27 @@
+class Solution {
+public:
+    vector<char> vStr(string s){
+        int n = s.length(),i=0,f=0;
+        vector<char> res;
+        while(i<n){
+            if(s[i]!='#'){
+                res.push_back(s[i]);
+                i++;
+            }
+            else if(!res.empty()){
+                res.pop_back();
+                i++;
+            }
+            else{
+                i++;
+            }
+        }
+        return res;
+    }
+    bool backspaceCompare(string S, string T) {
+        if(vStr(S) == vStr(T)){
+            return true;
+        }
+        return false;
+    }
+};
