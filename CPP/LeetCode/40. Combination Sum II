@@ -1,0 +1,31 @@
+class Solution {
+public:
+    vector<vector<int>> res;
+    void cres(vector<int>& candidates, int target, vector<int> r, int ind){
+        int n=candidates.size();
+        if(target<0){
+            return;
+        }
+        if(target==0){
+            res.push_back(r);
+        }
+        for(int i=ind;i<n;i++){
+            r.push_back(candidates[i]);
+            cres(candidates,target-candidates[i],r,i+1);
+            r.pop_back();
+            while(i<n-1 && candidates[i]==candidates[i+1]){
+                /* if(candidates[i]==candidates[i+1]){
+                    i++;
+                } */
+                i++;
+            }
+            //if(i>=n){break;}
+        }
+    }
+    vector<vector<int>> combinationSum2(vector<int>& candidates, int target) {
+        vector<int> r;
+        sort(candidates.begin(),candidates.end());
+        cres(candidates,target,r,0);
+        return res;
+    }
+};
