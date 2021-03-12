@@ -1,0 +1,18 @@
+class Solution {
+public:
+    int c=0;
+    void uniquePathsF(int m, int n) {
+        if(m<0 || n<0){
+            return;
+        }
+        if(m==0 && n==0){
+            c+=1;
+        }
+        uniquePathsF(m-1,n);
+        uniquePathsF(m,n-1);
+    }
+    int uniquePaths(int m, int n){
+        uniquePathsF(m-1,n-1);
+        return c;
+    }
+};
