@@ -8,3 +8,5 @@
 ## git branch -M main
 ## git remote add origin https://github.com/iSumanthParuchuri/Repo.git
 ## git push -u origin main
+
+## git clone https://github.com/iSumanthParuchuri/Repo.git
