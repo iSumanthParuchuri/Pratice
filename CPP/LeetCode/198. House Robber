@@ -1,0 +1,15 @@
+class Solution {
+public:
+    int rob(vector<int>& nums) {
+        int n=nums.size();
+        int c=nums[0];
+        int x=0;
+        int xnew;
+        for(int i=1;i<n;i++){
+            xnew=(c>x)?c:x;
+            c=x+nums[i];
+            x=xnew;
+        }
+        return ((c>x)?c:x);
+    }
+};
