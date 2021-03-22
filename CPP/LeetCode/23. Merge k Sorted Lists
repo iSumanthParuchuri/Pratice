@@ -1,0 +1,32 @@
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        vector<int> sres;
+        int n=lists.size();
+        for(int i=0;i<n;i++){
+            while(lists[i]){
+                sres.push_back(lists[i]->val);
+                lists[i]=lists[i]->next;
+            }
+        }
+        sort(sres.begin(),sres.end());
+        ListNode *res = new ListNode(0);
+        ListNode *hres = res;
+        n=sres.size();
+        for(int i=0;i<n;i++){
+            res->next = new ListNode(sres[i]);
+            res=res->next;
+        }
+        return hres->next;
+    }
+};
