@@ -1,0 +1,25 @@
+class Solution {
+public:
+    bool areAlmostEqual(string s1, string s2) {
+        if(s1==s2){return true;}
+        if(s1.size()!=s2.size()){return false;}
+        int si,li,c=0;
+        for(int i=0;i<s1.size();i++){
+            if(s1[i]!=s2[i]){
+                c++;
+                if(c==1){
+                    si=i;
+                }
+                if(c==2){
+                    li=i;
+                }
+                if(c>2){
+                    return false;
+                }
+            }
+        }
+        if(c!=2){return false;}
+        else if(s1[si]==s2[li] && s1[li]==s2[si] && c==2){return true;}
+        else {return false;}
+    }
+};
