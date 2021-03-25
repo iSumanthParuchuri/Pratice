@@ -1,0 +1,27 @@
+class Solution {
+public:
+    vector<vector<int>> res;
+    vector<int> sres;
+    void LoadRes(vector<int>& nums){
+        if(sres.size()==nums.size()){
+            res.push_back(sres);
+            return;
+        }
+        for(int i=0;i<nums.size();i++){
+            if(find(sres.begin(),sres.end(),nums[i])==sres.end()){
+                sres.push_back(nums[i]);
+                LoadRes(nums);
+                sres.pop_back();
+            }
+        }
+    }
+    vector<vector<int>> permute(vector<int>& nums) {
+        int n=nums.size();
+        if(n<=1){
+            res.push_back(nums);
+            return res;
+        }
+        LoadRes(nums);
+        return res;
+    }
+};
