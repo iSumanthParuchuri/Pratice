@@ -1,0 +1,56 @@
+class Solution {
+public:
+    bool Rv(vector<vector<char>>& board, int ind){
+        unordered_map<int, int> umap;
+        for(int i=0;i<9;i++){
+            if(umap.find(board[i][ind])!=umap.end() && board[i][ind]!='.'){
+                return false;
+            }
+            else{
+                umap[board[i][ind]]=1;
+            }
+        }
+        return true;
+    }
+    bool Cv(vector<vector<char>>& board, int ind){
+        unordered_map<int, int> umap;
+        for(int i=0;i<9;i++){
+            if(umap.find(board[ind][i])!=umap.end() && board[ind][i]!='.'){
+                return false;
+            }
+            else{
+                umap[board[ind][i]]=1;
+            }
+        }
+        return true;
+    }
+    bool RCv(vector<vector<char>>& board, int row, int col){
+        unordered_map<int, int> umap;
+        for(int i=row;i<row+3;i++){
+            for(int j=col;j<col+3;j++){
+                if(umap.find(board[i][j])!=umap.end() && board[i][j]!='.'){
+                    return false;
+                }
+                else{
+                    umap[board[i][j]]=1;
+                }
+            }
+        }
+        return true;
+    }
+    bool isValidSudoku(vector<vector<char>>& board) {
+        for(int i=0;i<9;i++){
+            if(!Rv(board,i) || !Cv(board,i)){
+                return false;
+            }
+        }
+        for(int i=0;i<9;i+=3){
+            for(int j=0;j<9;j+=3){
+                if(!RCv(board,i,j)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
