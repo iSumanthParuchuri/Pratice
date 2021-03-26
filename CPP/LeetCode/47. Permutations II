@@ -1,0 +1,44 @@
+class Solution {
+public:
+    vector<vector<int>> res;
+    vector<int> sres;
+    unordered_map<int,int> umap;
+    void LoadRes(vector<int>& nums){
+        if(sres.size()==nums.size()){
+            res.push_back(sres);
+            return;
+        }
+        for(int i=0;i<nums.size();i++){
+            if(umap[nums[i]]>0){
+                if(i>0){
+                    if(nums[i]==nums[i-1]){
+                        continue;
+                    }
+                }
+                sres.push_back(nums[i]);
+                umap[nums[i]]--;
+                LoadRes(nums);
+                sres.pop_back();
+                umap[nums[i]]++;
+            }
+        }
+    }
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        int n=nums.size();
+        sort(nums.begin(),nums.end());
+        if(n<=1){
+            res.push_back(nums);
+            return res;
+        }
+        for(int i=0;i<n;i++){
+            if(umap.find(nums[i])==umap.end()){
+                umap[nums[i]]=1;
+            }
+            else{
+                umap[nums[i]]+=1;
+            }
+        }
+        LoadRes(nums);
+        return res;
+    }
+};
