@@ -1,0 +1,52 @@
+class Solution {
+public:
+    bool solved = false;
+    bool Rv(vector<vector<char>>& b, int row, char val) {
+        for(int i = 0; i < 9; i++) {
+            if(b[row][i] == val) return false;
+        }
+        return true;
+    }
+    
+    bool Cv(vector<vector<char>>& b, int col, char val) {
+        for(int i = 0; i < 9; i++) {
+            if(b[i][col] == val) return false;
+        }
+        return true;
+    }
+    
+    bool RCv(vector<vector<char>>& b, int r, int c, char val) {
+        int row = (r/3) * 3;
+        int col = (c/3) * 3;
+        for(int i = row; i < row+3; i++) {
+            for(int j = col; j < col+3; j++) {
+                if(b[i][j] == val) return false;
+            }
+        }
+        return true;
+    }
+    
+    void dfs(vector<vector<char>>& b) {
+        if(solved) return;
+        for(int i = 0; i < 9; i++) {
+            for(int j = 0; j < 9; j++) {
+                if(b[i][j] != '.') continue;
+                for(char k = '1'; k <= '9'; k++) {
+                    if(!Rv(b, i, k) || !Cv(b, j, k) || !RCv(b, i, j, k)){
+                        continue;
+                    }
+                    b[i][j] = k;
+                    dfs(b);
+                    if(solved) return;
+                    b[i][j] = '.';
+                }
+                if(!solved) return;
+            }
+        }
+        solved = true;
+    }
+    
+    void solveSudoku(vector<vector<char>>& board) {
+        dfs(board);
+    }
+};
