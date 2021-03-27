@@ -1,0 +1,31 @@
+class Solution {
+public:
+    void vi(vector<vector<int>>& rooms, vector<int>& vis, unordered_map<int, int>& umap, int ind){
+        if(vis[ind]==1){return;}
+        vis[ind]=1;
+        int m=rooms[ind].size();
+        for(int j=0;j<m;j++){
+            umap[rooms[ind][j]]=1;
+            vi(rooms,vis,umap,rooms[ind][j]);
+        }
+    }
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        int n=rooms.size();
+        vector<int> vis(n,0);
+        unordered_map<int, int> umap;
+        umap[0]=1;
+        int i=0;
+        for(int i=0;i<n;i++){
+            if(vis[i]==1){
+                continue;
+            }
+            else if(umap[i]==1){
+                vi(rooms,vis,umap,i);
+            }
+            else{
+                return false;
+            }
+        }
+        return true;
+    }
+};
