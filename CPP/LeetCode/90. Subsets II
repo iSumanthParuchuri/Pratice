@@ -1,0 +1,30 @@
+class Solution {
+public:
+    vector<vector<int>> res;
+    void subSet(vector<int>& nums,int s,int lev,vector<int> sres){
+        if(sres.size()==lev){
+            for(int i=0;i<res.size();i++){
+                if(res[i]==sres){
+                    return;
+                }
+            }
+            res.push_back(sres);
+            return;
+        }
+        for(int i=s;i<nums.size();i++){
+            sres.push_back(nums[i]);
+            subSet(nums,i+1,lev,sres);
+            sres.pop_back();
+        }
+    }
+    vector<vector<int>> subsetsWithDup(vector<int>& nums) {
+        vector<int> sres;
+        res.push_back(sres);
+        sort(nums.begin(),nums.end());
+        for(int i=1;i<nums.size()+1;i++){
+            int s=0;
+            subSet(nums,s,i,sres);
+        }
+        return res;
+    }
+};
