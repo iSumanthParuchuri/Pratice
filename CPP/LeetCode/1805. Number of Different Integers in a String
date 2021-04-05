@@ -1,0 +1,26 @@
+class Solution {
+public:
+    int numDifferentIntegers(string word) {
+        int n=word.size();
+        unordered_map<string,int> umap;
+        for(int i=0;i<n;i++){
+            string s="";
+            if(isdigit(word[i]) && i<n){
+                while(isdigit(word[i])){
+                    s+=word[i];
+                    i++;
+                    if(i==n){
+                        break;
+                    }
+                }
+                int z=0;
+                while(s[z]=='0'){
+                    z++;
+                }
+                s=s.substr(z,s.size());
+                umap[s]=1;
+            }
+        }
+        return umap.size();
+    }
+};
