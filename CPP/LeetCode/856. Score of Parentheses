@@ -1,0 +1,26 @@
+class Solution {
+public:
+    unordered_map<int,int> op;
+    int val(int si,int ei){
+        if(si+1==ei){return 1;}
+        else if(op[si]==ei){return 2*val(si+1,ei-1);}
+        else{
+            return val(si,op[si])+val(op[si]+1,ei);
+        }
+    }
+    int scoreOfParentheses(string S) {
+        vector<int> v;
+        int n=S.size();
+        for(int i=0;i<n;i++){
+            if(S[i]=='('){
+                v.push_back(i);
+            }
+            else{
+                int x=v.back();
+                v.pop_back();
+                op[x]=i;
+            }
+        }
+        return val(0,n-1);
+    }
+};
