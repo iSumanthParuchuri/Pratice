@@ -1,0 +1,13 @@
+def cost(B):
+    n=len(B)
+    h=0
+    l=0
+    for i in range(1,n):
+        e1=abs(B[i-1]-1)
+        e2=abs(B[i]-1)
+        e3=abs(B[i-1]-B[i])
+        ln = max(l,h+e1)
+        hi = max(l+e2,h+e3)
+        l=ln
+        h=hi
+    return max(l,h)
