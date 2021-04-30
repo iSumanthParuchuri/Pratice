@@ -1,0 +1,30 @@
+class Solution {
+public:
+    vector<vector<string>> res;
+    vector<string> cur;
+    bool isP(string s, int low, int high){
+        while(low<high){
+            if(s[low++]!=s[high--]){
+                return false;
+            }
+        }
+        return true;
+    }
+    void h(string s, int start, int end){
+        if(start>=s.size()){
+            res.push_back(cur);
+            return;
+        }
+        for(int i=start;i<end;i++){
+            if(isP(s,start,i)){
+                cur.push_back(s.substr(start,i-start+1));
+                h(s,i+1,end);
+                cur.pop_back();
+            }
+        }
+    }
+    vector<vector<string>> partition(string s) {
+        h(s,0,s.size());
+        return res;
+    }
+};
