@@ -1,0 +1,40 @@
+class Solution {
+public:
+    bool isPrime(int x)
+    {
+        if (x <= 2)
+        {
+            return (x == 2);
+        }
+        int upper_limit = sqrt(x);
+        for (int i = 2; i <= upper_limit; ++i)
+        {
+            if (x % i == 0)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    
+    int primePalindrome(int N) {
+        if (N >= 8 && N <= 11)
+        {
+            return 11;
+        }
+        int res;
+        for (int i = 1; i < 1e5; ++i)
+        {
+            std::string s = to_string(i);
+            std::string t(s.rbegin(), s.rend());
+            s += t.substr(1);
+            int tmp_num = stoi(s);
+            if (tmp_num >= N && isPrime(tmp_num))
+            {
+                res = tmp_num;
+                break;
+            }
+        }
+        return res;
+    }
+};
