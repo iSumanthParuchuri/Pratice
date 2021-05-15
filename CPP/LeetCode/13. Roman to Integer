@@ -1,0 +1,25 @@
+class Solution {
+public:
+    int romanToInt(string s) {
+        string t(s.rbegin(),s.rend());
+        int n=t.size(),c=0,ans=0,k=0;
+        int numbers[] = {1, 5, 10, 50, 100, 500, 1000 };
+        string romans[] = {"I","V","X","L","C","D","M"};        
+        for(int i=0;i<n;i++){
+            for(int j=0;j<7;j++){
+                if(t[i]==romans[j][0]){
+                    k=numbers[j];
+                    break;
+                }
+            }
+            if(k>=c){
+                ans+=k;
+                c=k;
+            }
+            else{
+                ans-=k;
+            }
+        }
+        return ans;
+    }
+};
