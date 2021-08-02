@@ -1,0 +1,17 @@
+class Solution {
+public:
+    bool isThree(int n) {
+        int con=0;
+        for(int i=1;i<=int(n/2);i++){
+            if(n%i==0){
+                con++;
+            }
+        }
+        if(con==2){
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+};
