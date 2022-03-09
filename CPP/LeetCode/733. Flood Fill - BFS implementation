@@ -1,0 +1,54 @@
+class Solution {
+public:
+    bool edgeC(vector<vector<int>>& image, int sr, int sc, int newColor, int sp, vector<bool>& rb, vector<bool>& cb){
+        if(sr<0 || sr>=image.size() || sc<0 || sc>=image[0].size()){
+            return false;
+        }
+        if(!rb[sr] && !cb[sc]){
+            return false;
+        }
+        if(image[sr][sc]!=sp || image[sr][sc]==newColor){
+            return false;
+        }
+        return true;
+    }
+    vector<vector<int>> floodFill(vector<vector<int>>& image, int sr, int sc, int newColor){
+        vector<bool> rb(image.size(),false);
+        vector<bool> cb(image[0].size(),false);
+        list<int> rqueue;
+        list<int> cqueue;
+        int sp = image[sr][sc];
+        //floodfillhelper(image,sr,sc,newColor,sp);
+        if(sp==newColor){
+            return image;
+        }
+        rqueue.push_back(sr);
+        cqueue.push_back(sc);
+        while(!rqueue.empty()){
+            sr=rqueue.front();
+            sc=cqueue.front();
+            image[sr][sc]=newColor;
+            rb[sr]=true;
+            cb[sc]=true;
+            rqueue.pop_front();
+            cqueue.pop_front();
+            if(edgeC(image,sr+1,sc,newColor,sp,rb,cb)){
+                rqueue.push_back(sr+1);
+                cqueue.push_back(sc);
+            }
+            if(edgeC(image,sr-1,sc,newColor,sp,rb,cb)){
+                rqueue.push_back(sr-1);
+                cqueue.push_back(sc);
+            }
+            if(edgeC(image,sr,sc+1,newColor,sp,rb,cb)){
+                rqueue.push_back(sr);
+                cqueue.push_back(sc+1);
+            }
+            if(edgeC(image,sr,sc-1,newColor,sp,rb,cb)){
+                rqueue.push_back(sr);
+                cqueue.push_back(sc-1);
+            }
+        }
+        return image;
+    }
+};
