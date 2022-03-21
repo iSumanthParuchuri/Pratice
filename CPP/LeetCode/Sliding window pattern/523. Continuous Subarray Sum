@@ -1,0 +1,21 @@
+class Solution {
+public:
+    bool checkSubarraySum(vector<int>& nums, int k) {
+        int s=0;
+        map<int,int> m;
+        for(int i=0;i<nums.size();i++){
+            s+=nums[i];
+            int md = s%k;
+            if(i>0 && md==0){
+                return true;
+            }
+            else if(m.find(md)==m.end()){
+                m[md]=i;
+            }
+            else if(i-m[md]>1){
+                return true;
+            }
+        }
+        return false;
+    }
+};
